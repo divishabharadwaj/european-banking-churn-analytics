@@ -65,7 +65,7 @@ st.markdown("""
         justify-content: space-between;
     }
 </style>
-""", unsafe_style_with_html=True)
+""", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # DETERMINISTIC DATA GENERATION ENGINE
@@ -414,7 +414,7 @@ df['BalanceSegment'] = df['Balance'].apply(lambda b: 'Zero-balance' if b == 0 el
 # -----------------------------------------------------------------------------
 # SIDEBAR FILTERS PANEL
 # -----------------------------------------------------------------------------
-st.sidebar.markdown("<div class='mono-label'>Control Protocol</div>", unsafe_style_with_html=True)
+st.sidebar.markdown("<div class='mono-label'>Control Protocol</div>", unsafe_allow_html=True)
 st.sidebar.title("Filter Criteria")
 
 geo_options = sorted(list(df['Geography'].unique()))
@@ -463,9 +463,9 @@ if sel_card:
 # -----------------------------------------------------------------------------
 # MAIN HEADER
 # -----------------------------------------------------------------------------
-st.markdown("<span class='mono-label'>European Central Bank — Supervisory Board</span>", unsafe_style_with_html=True)
-st.markdown("<div class='serif-title'>Banking Churn Pattern Analysis</div>", unsafe_style_with_html=True)
-st.markdown("<div class='serif-subtitle'>Supervisory Audit of Western European Retail Portfolio (10,000 Clients)</div>", unsafe_style_with_html=True)
+st.markdown("<span class='mono-label'>European Central Bank — Supervisory Board</span>", unsafe_allow_html=True)
+st.markdown("<div class='serif-title'>Banking Churn Pattern Analysis</div>", unsafe_allow_html=True)
+st.markdown("<div class='serif-subtitle'>Supervisory Audit of Western European Retail Portfolio (10,000 Clients)</div>", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # HIGH-LEVEL KEY METRIC HEROES
@@ -493,7 +493,7 @@ with col1:
         <div style="font-size: 2.2rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{overall_churn_rate:.2f}%</div>
         <div style="font-size: 0.8rem; color: #4a5568;">Total Portfolio Risk baseline</div>
     </div>
-    """, unsafe_style_with_html=True)
+    """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
@@ -502,7 +502,7 @@ with col2:
         <div style="font-size: 2.2rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{high_value_risk_rate:.2f}%</div>
         <div style="font-size: 0.8rem; color: #4a5568;">Risk for Balances &ge; 100,000 &euro;</div>
     </div>
-    """, unsafe_style_with_html=True)
+    """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
@@ -511,7 +511,7 @@ with col3:
         <div style="font-size: 2.2rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">&euro;{assets_at_risk:,.0f}</div>
         <div style="font-size: 0.8rem; color: #4a5568;">Total Balance of Exited Clients</div>
     </div>
-    """, unsafe_style_with_html=True)
+    """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # INTERACTIVE WORKSPACE TABS
@@ -529,7 +529,7 @@ tab_summary, tab_ledger, tab_geography, tab_premium = st.tabs([
 with tab_summary:
     col_header, col_btn = st.columns([2, 1])
     with col_header:
-        st.markdown("<h3 style='font-family:Playfair Display, serif; italic; margin: 0;'>Portfolio Vulnerability Indicators</h3>", unsafe_style_with_html=True)
+        st.markdown("<h3 style='font-family:Playfair Display, serif; italic; margin: 0;'>Portfolio Vulnerability Indicators</h3>", unsafe_allow_html=True)
     with col_btn:
         if not filtered_df.empty:
             csv_data = filtered_df.to_csv(index=False).encode('utf-8')
@@ -608,13 +608,13 @@ with tab_summary:
             A key focal point of this supervisory audit is the product utilization profile. While customers holding <strong>two products</strong> represent the most stable client segment with exceptionally low churn rates (~8.2%), customers holding <strong>three or four bank products exhibit catastrophic churn rates near 82.7% and 100% respectively</strong>. This suggests that aggressive cross-selling strategies beyond two products create immediate frictional exits rather than locking in long-term customer value.
         </p>
     </div>
-    """, unsafe_style_with_html=True)
+    """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # TAB 2: COMPREHENSIVE SEGMENT CHURN LEDGER
 # -----------------------------------------------------------------------------
 with tab_ledger:
-    st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Advanced Segment Metrics and Interactions</h3>", unsafe_style_with_html=True)
+    st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Advanced Segment Metrics and Interactions</h3>", unsafe_allow_html=True)
     
     # We will build a beautiful pandas DataFrame of segment metrics dynamically!
     segments_to_analyze = [
@@ -686,7 +686,7 @@ with tab_ledger:
     ledger_df = pd.DataFrame(ledger_records)
     
     # Interactive filters for ledger
-    st.markdown("<span class='mono-label'>Filter Ledger Grid</span>", unsafe_style_with_html=True)
+    st.markdown("<span class='mono-label'>Filter Ledger Grid</span>", unsafe_allow_html=True)
     cols_ledger = st.columns(3)
     with cols_ledger[0]:
         filter_cat = st.selectbox("Select Category", ["All"] + list(ledger_df['Category'].unique()))
@@ -727,7 +727,7 @@ with tab_ledger:
     )
     
     # Geography-Age Interaction Bar Chart
-    st.markdown("<h4 style='font-family:Playfair Display, serif; margin-top: 2rem;'>Geography x Age Group Interaction Matrix</h4>", unsafe_style_with_html=True)
+    st.markdown("<h4 style='font-family:Playfair Display, serif; margin-top: 2rem;'>Geography x Age Group Interaction Matrix</h4>", unsafe_allow_html=True)
     
     interaction_records = []
     for geo in ['France', 'Spain', 'Germany']:
@@ -765,7 +765,7 @@ with tab_ledger:
 # TAB 3: GEOGRAPHIC PROFILE
 # -----------------------------------------------------------------------------
 with tab_geography:
-    st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Sovereign Jurisdiction Metrics</h3>", unsafe_style_with_html=True)
+    st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Sovereign Jurisdiction Metrics</h3>", unsafe_allow_html=True)
     
     geo_metrics = []
     for geo in ['France', 'Spain', 'Germany']:
@@ -811,7 +811,7 @@ with tab_geography:
 # TAB 4: HIGH-VALUE RISK EXPLORER
 # -----------------------------------------------------------------------------
 with tab_premium:
-    st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Balance vs Salary Correlation Analysis</h3>", unsafe_style_with_html=True)
+    st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Balance vs Salary Correlation Analysis</h3>", unsafe_allow_html=True)
     
     positive_bal_df = filtered_df[filtered_df['Balance'] > 0]
     
@@ -839,8 +839,8 @@ with tab_premium:
         st.info("No premium accounts with active positive balances in the filtered subset.")
         
     # Table of Top Premium at Risk accounts
-    st.markdown("<h4 style='font-family:Playfair Display, serif;'>Top Risk Portfolio Accounts</h4>", unsafe_style_with_html=True)
-    risk_premium = filtered_df[(filtered_df['Balance'] >= 140000) & (filtered_df['Exited'] == 1)].slice(0, 5) if hasattr(filtered_df, 'slice') else filtered_df[(filtered_df['Balance'] >= 140000) & (filtered_df['Exited'] == 1)].head(5)
+    st.markdown("<h4 style='font-family:Playfair Display, serif;'>Top Risk Portfolio Accounts</h4>", unsafe_allow_html=True)
+    risk_premium = filtered_df[(filtered_df['Balance'] >= 140000) & (filtered_df['Exited'] == 1)].head(5)
     
     if len(risk_premium) > 0:
         st.dataframe(
@@ -854,10 +854,10 @@ with tab_premium:
 # -----------------------------------------------------------------------------
 # FOOTER
 # -----------------------------------------------------------------------------
-st.markdown("<br/><br/>", unsafe_style_with_html=True)
+st.markdown("<br/><br/>", unsafe_allow_html=True)
 st.markdown("""
 <div class="ecb-footer">
     <span>ECB Churn Index Engine &copy; 2026</span>
     <span>Sovereign Jurisdiction Oversight Framework — Python 3.11 / Streamlit 1.32</span>
 </div>
-""", unsafe_style_with_html=True)
+""", unsafe_allow_html=True)
