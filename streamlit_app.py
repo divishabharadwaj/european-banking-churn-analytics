@@ -103,7 +103,7 @@ def load_and_generate_dataset():
             'activeCount': 290,
             'ageGroupSplits': { '<30': 44, '30-45': 400, '46-60': 318, '60+': 48 },
             'creditSplits': { 'Low': 210, 'Medium': 520, 'High': 80 },
-            'balanceSplits': { 'Zero': 300, 'LowMid': 110, 'HighBal': 400 },
+            'balanceSplits': { 'Zero': 300, 'LowMid': 90, 'HighBal': 420 },
             'productSplits': { 1: 570, 2: 140, 3: 80, 4: 20 },
             'genderSplits': { 'Female': 410, 'Male': 400 }
         },
@@ -113,7 +113,7 @@ def load_and_generate_dataset():
             'activeCount': 2330,
             'ageGroupSplits': { '<30': 850, '30-45': 2700, '46-60': 332, '60+': 322 },
             'creditSplits': { 'Low': 1000, 'Medium': 2800, 'High': 404 },
-            'balanceSplits': { 'Zero': 1600, 'LowMid': 800, 'HighBal': 1804 },
+            'balanceSplits': { 'Zero': 1600, 'LowMid': 854, 'HighBal': 1750 },
             'productSplits': { 1: 1930, 2: 2250, 3: 24, 4: 0 },
             'genderSplits': { 'Female': 1900, 'Male': 2304 }
         },
@@ -121,7 +121,7 @@ def load_and_generate_dataset():
         {
             'geography': 'Germany', 'exited': 1, 'count': 814,
             'activeCount': 295,
-            'ageGroupSplits': { '<30': 45, '30-45': 382, '46-60': 343, '60+': 44 },
+            'ageGroupSplits': { '<30': 45, '30-45': 387, '46-60': 338, '60+': 44 },
             'creditSplits': { 'Low': 218, 'Medium': 513, 'High': 83 },
             'balanceSplits': { 'Zero': 0, 'LowMid': 109, 'HighBal': 705 },
             'productSplits': { 1: 578, 2: 126, 3: 86, 4: 24 },
@@ -131,7 +131,7 @@ def load_and_generate_dataset():
         {
             'geography': 'Germany', 'exited': 0, 'count': 1695,
             'activeCount': 955,
-            'ageGroupSplits': { '<30': 350, '30-45': 1120, '46-60': 159, '60+': 66 },
+            'ageGroupSplits': { '<30': 350, '30-45': 1112, '46-60': 164, '60+': 69 },
             'creditSplits': { 'Low': 400, 'Medium': 1100, 'High': 195 },
             'balanceSplits': { 'Zero': 0, 'LowMid': 293, 'HighBal': 1402 },
             'productSplits': { 1: 771, 2: 914, 3: 10, 4: 0 },
@@ -143,7 +143,7 @@ def load_and_generate_dataset():
             'activeCount': 150,
             'ageGroupSplits': { '<30': 47, '30-45': 81, '46-60': 149, '60+': 136 },
             'creditSplits': { 'Low': 100, 'Medium': 280, 'High': 33 },
-            'balanceSplits': { 'Zero': 243, 'LowMid': 110, 'HighBal': 60 },
+            'balanceSplits': { 'Zero': 243, 'LowMid': 84, 'HighBal': 86 },
             'productSplits': { 1: 261, 2: 82, 3: 54, 4: 16 },
             'genderSplits': { 'Female': 217, 'Male': 196 }
         },
@@ -153,7 +153,7 @@ def load_and_generate_dataset():
             'activeCount': 1131,
             'ageGroupSplits': { '<30': 472, '30-45': 1148, '46-60': 142, '60+': 302 },
             'creditSplits': { 'Low': 483, 'Medium': 1408, 'High': 173 },
-            'balanceSplits': { 'Zero': 1213, 'LowMid': 400, 'HighBal': 451 },
+            'balanceSplits': { 'Zero': 1213, 'LowMid': 415, 'HighBal': 436 },
             'productSplits': { 1: 974, 2: 1078, 3: 12, 4: 0 },
             'genderSplits': { 'Female': 950, 'Male': 1114 }
         }
@@ -180,7 +180,7 @@ def load_and_generate_dataset():
             for _ in range(amt): listBalanceSegment.append(k)
 
         for k, amt in c['productSplits'].items():
-            for _ in range(amt): listNumProducts.append(k)
+            for _ in range(int(k)): listNumProducts.append(int(k))
 
         for k, amt in c['genderSplits'].items():
             for _ in range(amt): listGender.append(k)
@@ -250,76 +250,25 @@ def load_and_generate_dataset():
 
     # Financial scaling to achieve EXACT statistics
     hv_churned = [c for c in customers if c['Balance'] >= 100000 and c['Exited'] == 1]
-    if len(hv_churned) == 1165:
+    if len(hv_churned) == 1211:
         current_balance_sum = sum(c['Balance'] for c in hv_churned)
-        balance_target = 154200000
+        balance_target = 185588094.63
         balance_factor = balance_target / current_balance_sum
 
-        current_salary_sum = sum(c['EstimatedSalary'] for c in hv_churned)
-        salary_target = 1165 * 101414
-        salary_factor = salary_target / current_salary_sum
-
         bal_cum_adjustment = 0.0
-        sal_cum_adjustment = 0.0
 
         for i in range(len(hv_churned)):
             c = hv_churned[i]
             
             new_bal_raw = c['Balance'] * balance_factor
-            new_bal_rounded = max(100000, int(round(new_bal_raw)))
+            new_bal_rounded = max(100000.01, round(new_bal_raw, 2))
             bal_cum_adjustment += (new_bal_raw - new_bal_rounded)
-            c['Balance'] = float(new_bal_rounded)
-
-            new_sal_raw = c['EstimatedSalary'] * salary_factor
-            new_sal_rounded = int(round(new_sal_raw))
-            sal_cum_adjustment += (new_sal_raw - new_sal_rounded)
-            c['EstimatedSalary'] = float(new_sal_rounded)
+            c['Balance'] = new_bal_rounded
 
         last_c = hv_churned[-1]
-        last_c['Balance'] += int(round(bal_cum_adjustment))
-        last_c['EstimatedSalary'] += int(round(sal_cum_adjustment))
+        last_c['Balance'] = round(last_c['Balance'] + bal_cum_adjustment, 2)
 
     shuffle_array(customers, rnd)
-
-    # Overwrite first 30 with seed records
-    real_seed_records = [
-        { "Year": 2025, "CustomerId": 15634602, "Surname": "Hargrave", "CreditScore": 619, "Geography": "France", "Gender": "Female", "Age": 42, "Tenure": 2, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 101348.88, "Exited": 1 },
-        { "Year": 2025, "CustomerId": 15647311, "Surname": "Hill", "CreditScore": 608, "Geography": "Spain", "Gender": "Female", "Age": 41, "Tenure": 1, "Balance": 83807.86, "NumOfProducts": 1, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 112542.58, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15619304, "Surname": "Onio", "CreditScore": 502, "Geography": "France", "Gender": "Female", "Age": 42, "Tenure": 8, "Balance": 159660.8, "NumOfProducts": 3, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 113931.57, "Exited": 1 },
-        { "Year": 2025, "CustomerId": 15701354, "Surname": "Boni", "CreditScore": 699, "Geography": "France", "Gender": "Female", "Age": 39, "Tenure": 1, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 93826.63, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15737888, "Surname": "Mitchell", "CreditScore": 850, "Geography": "Spain", "Gender": "Female", "Age": 43, "Tenure": 2, "Balance": 125510.82, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 79084.1, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15574012, "Surname": "Chu", "CreditScore": 645, "Geography": "Spain", "Gender": "Male", "Age": 44, "Tenure": 8, "Balance": 113755.78, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 149756.71, "Exited": 1 },
-        { "Year": 2025, "CustomerId": 15592531, "Surname": "Bartlett", "CreditScore": 822, "Geography": "France", "Gender": "Male", "Age": 50, "Tenure": 7, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 10062.8, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15656148, "Surname": "Obinna", "CreditScore": 376, "Geography": "Germany", "Gender": "Female", "Age": 29, "Tenure": 4, "Balance": 115046.74, "NumOfProducts": 4, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 119346.88, "Exited": 1 },
-        { "Year": 2025, "CustomerId": 15792365, "Surname": "He", "CreditScore": 501, "Geography": "France", "Gender": "Male", "Age": 44, "Tenure": 4, "Balance": 142051.07, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 74940.5, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15592389, "Surname": "H?", "CreditScore": 684, "Geography": "France", "Gender": "Male", "Age": 27, "Tenure": 2, "Balance": 134603.88, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 71725.73, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15767821, "Surname": "Bearce", "CreditScore": 528, "Geography": "France", "Gender": "Male", "Age": 31, "Tenure": 6, "Balance": 102016.72, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 80181.12, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15737173, "Surname": "Andrews", "CreditScore": 497, "Geography": "Spain", "Gender": "Male", "Age": 24, "Tenure": 3, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 76390.01, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15632264, "Surname": "Kay", "CreditScore": 476, "Geography": "France", "Gender": "Female", "Age": 34, "Tenure": 10, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 26260.98, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15691483, "Surname": "Chin", "CreditScore": 549, "Geography": "France", "Gender": "Female", "Age": 25, "Tenure": 5, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 190857.79, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15600882, "Surname": "Scott", "CreditScore": 635, "Geography": "Spain", "Gender": "Female", "Age": 35, "Tenure": 7, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 65951.65, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15643966, "Surname": "Goforth", "CreditScore": 616, "Geography": "Germany", "Gender": "Male", "Age": 45, "Tenure": 3, "Balance": 143129.41, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 64327.26, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15737452, "Surname": "Romeo", "CreditScore": 653, "Geography": "Germany", "Gender": "Male", "Age": 58, "Tenure": 1, "Balance": 132602.88, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 5097.67, "Exited": 1 },
-        { "Year": 2025, "CustomerId": 15788218, "Surname": "Henderson", "CreditScore": 549, "Geography": "Spain", "Gender": "Female", "Age": 24, "Tenure": 9, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 14406.41, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15661507, "Surname": "Muldrow", "CreditScore": 587, "Geography": "Spain", "Gender": "Male", "Age": 45, "Tenure": 6, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 158684.81, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15568982, "Surname": "Hao", "CreditScore": 726, "Geography": "France", "Gender": "Female", "Age": 24, "Tenure": 6, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 54724.03, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15577657, "Surname": "McDonald", "CreditScore": 732, "Geography": "France", "Gender": "Male", "Age": 41, "Tenure": 8, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 170886.17, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15597945, "Surname": "Dellucci", "CreditScore": 636, "Geography": "Spain", "Gender": "Female", "Age": 32, "Tenure": 8, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 138555.46, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15699309, "Surname": "Gerasimov", "CreditScore": 510, "Geography": "Spain", "Gender": "Female", "Age": 38, "Tenure": 4, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 118913.53, "Exited": 1 },
-        { "Year": 2025, "CustomerId": 15725737, "Surname": "Mosman", "CreditScore": 669, "Geography": "France", "Gender": "Male", "Age": 46, "Tenure": 3, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 8487.75, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15625047, "Surname": "Yen", "CreditScore": 846, "Geography": "France", "Gender": "Female", "Age": 38, "Tenure": 5, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 187616.16, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15738191, "Surname": "Maclean", "CreditScore": 577, "Geography": "France", "Gender": "Male", "Age": 25, "Tenure": 3, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 124508.29, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15736816, "Surname": "Young", "CreditScore": 756, "Geography": "Germany", "Gender": "Male", "Age": 36, "Tenure": 2, "Balance": 136815.64, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 170041.95, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15700772, "Surname": "Nebechi", "CreditScore": 571, "Geography": "France", "Gender": "Male", "Age": 44, "Tenure": 9, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 38433.35, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15728693, "Surname": "McWilliams", "CreditScore": 574, "Geography": "Germany", "Gender": "Female", "Age": 43, "Tenure": 3, "Balance": 141349.43, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 100187.43, "Exited": 0 },
-        { "Year": 2025, "CustomerId": 15656300, "Surname": "Lucciano", "CreditScore": 411, "Geography": "France", "Gender": "Male", "Age": 29, "Tenure": 0, "Balance": 59697.17, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 53483.21, "Exited": 0 }
-    ]
-
-    for seed in real_seed_records:
-        for idx, c in enumerate(customers):
-            if c['Exited'] == seed['Exited'] and c['Geography'] == seed['Geography']:
-                customers[idx] = dict(seed)
-                break
 
     return pd.DataFrame(customers)
 
