@@ -180,7 +180,7 @@ def load_and_generate_dataset():
             for _ in range(amt): listBalanceSegment.append(k)
 
         for k, amt in c['productSplits'].items():
-            for _ in range(int(k)): listNumProducts.append(int(k))
+            for _ in range(amt): listNumProducts.append(int(k))
 
         for k, amt in c['genderSplits'].items():
             for _ in range(amt): listGender.append(k)
