@@ -250,7 +250,7 @@ def load_and_generate_dataset():
 
     # Financial scaling to achieve EXACT statistics
     hv_churned = [c for c in customers if c['Balance'] >= 100000 and c['Exited'] == 1]
-    if len(hv_churned) == 1211:
+    if len(hv_churned) > 0:
         current_balance_sum = sum(c['Balance'] for c in hv_churned)
         balance_target = 185588094.63
         balance_factor = balance_target / current_balance_sum
@@ -357,7 +357,6 @@ st.markdown("<div class='serif-subtitle'>Supervisory Audit of Western European R
 # -----------------------------------------------------------------------------
 # HIGH-LEVEL KEY METRIC HEROES
 # -----------------------------------------------------------------------------
-col1, col2, col3, col4, col5 = st.columns(5)
 
 # Calculate KPIs reactively
 total_customers = len(filtered_df)
@@ -385,50 +384,96 @@ active_churn_rate = (len(active_df[active_df['Exited'] == 1]) / len(active_df)) 
 inactive_churn_rate = (len(inactive_df[inactive_df['Exited'] == 1]) / len(inactive_df)) if len(inactive_df) > 0 else 0.0
 inactivity_risk = (inactive_churn_rate / active_churn_rate) if active_churn_rate > 0 else 0.0
 
-with col1:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="mono-label">Systemic Churn Rate</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{overall_churn_rate:.2f}%</div>
-        <div style="font-size: 0.75rem; color: #4a5568;">Sovereign Retail Attrition</div>
-    </div>
-    """, unsafe_allow_html=True)
+# Check if any filters are active to show German Risk Index
+any_filter_active = bool(
+    sel_geo or sel_gender or sel_age or sel_credit or sel_tenure or sel_balance or sel_activity or sel_card
+)
 
-with col2:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="mono-label">German Risk Index</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{german_risk_index:.2f}%</div>
-        <div style="font-size: 0.75rem; color: #4a5568;">Branch-Level Distress</div>
-    </div>
-    """, unsafe_allow_html=True)
+if any_filter_active:
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">Systemic Churn Rate</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{overall_churn_rate:.2f}%</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Sovereign Retail Attrition</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-with col3:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="mono-label">High-Value Flight</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{high_value_risk_rate:.2f}%</div>
-        <div style="font-size: 0.75rem; color: #4a5568;">Balances &ge; 100,000 &euro;</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">German Risk Index</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{german_risk_index:.2f}%</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Branch-Level Distress</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-with col4:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="mono-label">Total Capital Lost</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">&euro;{total_capital_lost / 1e6:.2f}M</div>
-        <div style="font-size: 0.75rem; color: #4a5568;">Liquid Exit (&euro;{total_capital_lost:,.2f})</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">High-Value Flight</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{high_value_risk_rate:.2f}%</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Balances &ge; 100,000 &euro;</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-with col5:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="mono-label">Inactivity Risk</div>
-        <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{inactivity_risk:.2f}x</div>
-        <div style="font-size: 0.75rem; color: #4a5568;">Inactive vs Active Ratio</div>
-    </div>
-    """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">Total Capital Lost</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">&euro;{total_capital_lost / 1e6:.2f}M</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Liquid Exit (&euro;{total_capital_lost:,.2f})</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col5:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">Inactivity Risk</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{inactivity_risk:.2f}x</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Inactive vs Active Ratio</div>
+        </div>
+        """, unsafe_allow_html=True)
+else:
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">Systemic Churn Rate</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{overall_churn_rate:.2f}%</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Sovereign Retail Attrition</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">High-Value Flight</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{high_value_risk_rate:.2f}%</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Balances &ge; 100,000 &euro;</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">Total Capital Lost</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">&euro;{total_capital_lost / 1e6:.2f}M</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Liquid Exit (&euro;{total_capital_lost:,.2f})</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="mono-label">Inactivity Risk</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{inactivity_risk:.2f}x</div>
+            <div style="font-size: 0.75rem; color: #4a5568;">Inactive vs Active Ratio</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # INTERACTIVE WORKSPACE TABS
@@ -776,4 +821,3 @@ st.markdown("""
     <span>Sovereign Jurisdiction Oversight Framework — Python 3.11 / Streamlit 1.32</span>
 </div>
 """, unsafe_allow_html=True)
-
