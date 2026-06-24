@@ -101,7 +101,7 @@ def load_and_generate_dataset():
         {
             'geography': 'France', 'exited': 1, 'count': 810,
             'activeCount': 290,
-            'ageGroupSplits': { '<30': 44, '30-45': 400, '46-60': 318, '60+': 48 },
+            'ageGroupSplits': { '<30': 44, '30-45': 418, '46-60': 290, '60+': 58 },
             'creditSplits': { 'Low': 210, 'Medium': 520, 'High': 80 },
             'balanceSplits': { 'Zero': 300, 'LowMid': 90, 'HighBal': 420 },
             'productSplits': { 1: 570, 2: 140, 3: 80, 4: 20 },
@@ -111,7 +111,7 @@ def load_and_generate_dataset():
         {
             'geography': 'France', 'exited': 0, 'count': 4204,
             'activeCount': 2330,
-            'ageGroupSplits': { '<30': 850, '30-45': 2700, '46-60': 332, '60+': 322 },
+            'ageGroupSplits': { '<30': 853, '30-45': 2672, '46-60': 357, '60+': 322 },
             'creditSplits': { 'Low': 1000, 'Medium': 2800, 'High': 404 },
             'balanceSplits': { 'Zero': 1600, 'LowMid': 854, 'HighBal': 1750 },
             'productSplits': { 1: 1930, 2: 2250, 3: 24, 4: 0 },
@@ -121,7 +121,7 @@ def load_and_generate_dataset():
         {
             'geography': 'Germany', 'exited': 1, 'count': 814,
             'activeCount': 295,
-            'ageGroupSplits': { '<30': 45, '30-45': 387, '46-60': 338, '60+': 44 },
+            'ageGroupSplits': { '<30': 46, '30-45': 417, '46-60': 298, '60+': 53 },
             'creditSplits': { 'Low': 218, 'Medium': 513, 'High': 83 },
             'balanceSplits': { 'Zero': 0, 'LowMid': 109, 'HighBal': 705 },
             'productSplits': { 1: 578, 2: 126, 3: 86, 4: 24 },
@@ -131,7 +131,7 @@ def load_and_generate_dataset():
         {
             'geography': 'Germany', 'exited': 0, 'count': 1695,
             'activeCount': 955,
-            'ageGroupSplits': { '<30': 350, '30-45': 1112, '46-60': 164, '60+': 69 },
+            'ageGroupSplits': { '<30': 350, '30-45': 1097, '46-60': 184, '60+': 64 },
             'creditSplits': { 'Low': 400, 'Medium': 1100, 'High': 195 },
             'balanceSplits': { 'Zero': 0, 'LowMid': 293, 'HighBal': 1402 },
             'productSplits': { 1: 771, 2: 914, 3: 10, 4: 0 },
@@ -141,7 +141,7 @@ def load_and_generate_dataset():
         {
             'geography': 'Spain', 'exited': 1, 'count': 413,
             'activeCount': 150,
-            'ageGroupSplits': { '<30': 47, '30-45': 81, '46-60': 149, '60+': 136 },
+            'ageGroupSplits': { '<30': 47, '30-45': 88, '46-60': 142, '60+': 136 },
             'creditSplits': { 'Low': 100, 'Medium': 280, 'High': 33 },
             'balanceSplits': { 'Zero': 243, 'LowMid': 84, 'HighBal': 86 },
             'productSplits': { 1: 261, 2: 82, 3: 54, 4: 16 },
@@ -151,7 +151,7 @@ def load_and_generate_dataset():
         {
             'geography': 'Spain', 'exited': 0, 'count': 2064,
             'activeCount': 1131,
-            'ageGroupSplits': { '<30': 472, '30-45': 1148, '46-60': 142, '60+': 302 },
+            'ageGroupSplits': { '<30': 472, '30-45': 1138, '46-60': 157, '60+': 297 },
             'creditSplits': { 'Low': 483, 'Medium': 1408, 'High': 173 },
             'balanceSplits': { 'Zero': 1213, 'LowMid': 415, 'HighBal': 436 },
             'productSplits': { 1: 974, 2: 1078, 3: 12, 4: 0 },
@@ -357,46 +357,76 @@ st.markdown("<div class='serif-subtitle'>Supervisory Audit of Western European R
 # -----------------------------------------------------------------------------
 # HIGH-LEVEL KEY METRIC HEROES
 # -----------------------------------------------------------------------------
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5 = st.columns(5)
 
-# Calculate KPIs
+# Calculate KPIs reactively
 total_customers = len(filtered_df)
 churned_df = filtered_df[filtered_df['Exited'] == 1]
-retained_df = filtered_df[filtered_df['Exited'] == 0]
 
 overall_churn_rate = (len(churned_df) / total_customers * 100) if total_customers > 0 else 0.0
 
-# High-balance definition (Balance >= 100k)
+# German Risk Index
+germany_df = filtered_df[filtered_df['Geography'] == 'Germany']
+germany_churn = germany_df[germany_df['Exited'] == 1]
+german_risk_index = (len(germany_churn) / len(germany_df) * 100) if len(germany_df) > 0 else 0.0
+
+# High-Value Flight (balances exceeding 100k)
 high_bal_df = filtered_df[filtered_df['Balance'] >= 100000]
 high_bal_churn = high_bal_df[high_bal_df['Exited'] == 1]
 high_value_risk_rate = (len(high_bal_churn) / len(high_bal_df) * 100) if len(high_bal_df) > 0 else 0.0
 
-assets_at_risk = churned_df['Balance'].sum()
+# Total Capital Lost (specifically from High-Value Asset accounts)
+total_capital_lost = high_bal_churn['Balance'].sum()
+
+# Inactivity Risk Multiplier
+active_df = filtered_df[filtered_df['IsActiveMember'] == 1]
+inactive_df = filtered_df[filtered_df['IsActiveMember'] == 0]
+active_churn_rate = (len(active_df[active_df['Exited'] == 1]) / len(active_df)) if len(active_df) > 0 else 0.0
+inactive_churn_rate = (len(inactive_df[inactive_df['Exited'] == 1]) / len(inactive_df)) if len(inactive_df) > 0 else 0.0
+inactivity_risk = (inactive_churn_rate / active_churn_rate) if active_churn_rate > 0 else 0.0
 
 with col1:
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="mono-label">Overall Churn Index</div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{overall_churn_rate:.2f}%</div>
-        <div style="font-size: 0.8rem; color: #4a5568;">Total Portfolio Risk baseline</div>
+        <div class="mono-label">Systemic Churn Rate</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{overall_churn_rate:.2f}%</div>
+        <div style="font-size: 0.75rem; color: #4a5568;">Sovereign Retail Attrition</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="mono-label">High-Value Risk Rate</div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{high_value_risk_rate:.2f}%</div>
-        <div style="font-size: 0.8rem; color: #4a5568;">Risk for Balances &ge; 100,000 &euro;</div>
+        <div class="mono-label">German Risk Index</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #c53030; margin: 0.2rem 0;">{german_risk_index:.2f}%</div>
+        <div style="font-size: 0.75rem; color: #4a5568;">Branch-Level Distress</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="mono-label">Assets At Churn Risk</div>
-        <div style="font-size: 2.2rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">&euro;{assets_at_risk:,.0f}</div>
-        <div style="font-size: 0.8rem; color: #4a5568;">Total Balance of Exited Clients</div>
+        <div class="mono-label">High-Value Flight</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{high_value_risk_rate:.2f}%</div>
+        <div style="font-size: 0.75rem; color: #4a5568;">Balances &ge; 100,000 &euro;</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f"""
+    <div class="kpi-card">
+        <div class="mono-label">Total Capital Lost</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">&euro;{total_capital_lost / 1e6:.2f}M</div>
+        <div style="font-size: 0.75rem; color: #4a5568;">Liquid Exit (&euro;{total_capital_lost:,.2f})</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col5:
+    st.markdown(f"""
+    <div class="kpi-card">
+        <div class="mono-label">Inactivity Risk</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0.2rem 0;">{inactivity_risk:.2f}x</div>
+        <div style="font-size: 0.75rem; color: #4a5568;">Inactive vs Active Ratio</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -746,3 +776,4 @@ st.markdown("""
     <span>Sovereign Jurisdiction Oversight Framework — Python 3.11 / Streamlit 1.32</span>
 </div>
 """, unsafe_allow_html=True)
+
