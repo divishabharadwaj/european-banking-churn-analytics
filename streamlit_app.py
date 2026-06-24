@@ -55,7 +55,7 @@ st.markdown("""
     
     /* Footer */
     .ecb-footer {
-        border-t: 1px solid rgba(0,0,0,0.1);
+        border-top: 1px solid rgba(0,0,0,0.1);
         padding-top: 1rem;
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.7rem;
@@ -68,7 +68,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# DETERMINISTIC DATA GENERATION ENGINE
+# DETERMINISTIC DATA GENERATION ENGINE (REPLICATING TS DATASET)
 # -----------------------------------------------------------------------------
 class SeededRandom:
     def __init__(self, seed=101):
@@ -96,293 +96,231 @@ def load_and_generate_dataset():
     customers = []
     current_id = 15560000
 
-    # 1. France: 5,014 records, 810 exited
-    france_customers = []
-    for i in range(5014):
-        gender = 'Female' if rnd.next_val() < 0.46 else 'Male'
-        credit_score = int(min(850, max(350, math.floor(650 + (rnd.next_val() - 0.5) * 180 + (rnd.next_val() - 0.5) * 100))))
-        
-        age_rand = rnd.next_val()
-        if age_rand < 0.12:
-            age = int(math.floor(18 + rnd.next_val() * 12))
-        elif age_rand < 0.65:
-            age = int(math.floor(30 + rnd.next_val() * 15))
-        elif age_rand < 0.90:
-            age = int(math.floor(45 + rnd.next_val() * 15))
-        else:
-            age = int(math.floor(60 + rnd.next_val() * 30))
+    cohorts = [
+        # 1. France Exited (810 total)
+        {
+            'geography': 'France', 'exited': 1, 'count': 810,
+            'activeCount': 290,
+            'ageGroupSplits': { '<30': 44, '30-45': 400, '46-60': 318, '60+': 48 },
+            'creditSplits': { 'Low': 210, 'Medium': 520, 'High': 80 },
+            'balanceSplits': { 'Zero': 300, 'LowMid': 110, 'HighBal': 400 },
+            'productSplits': { 1: 570, 2: 140, 3: 80, 4: 20 },
+            'genderSplits': { 'Female': 410, 'Male': 400 }
+        },
+        # 2. France Retained (4204 total)
+        {
+            'geography': 'France', 'exited': 0, 'count': 4204,
+            'activeCount': 2330,
+            'ageGroupSplits': { '<30': 850, '30-45': 2700, '46-60': 332, '60+': 322 },
+            'creditSplits': { 'Low': 1000, 'Medium': 2800, 'High': 404 },
+            'balanceSplits': { 'Zero': 1600, 'LowMid': 800, 'HighBal': 1804 },
+            'productSplits': { 1: 1930, 2: 2250, 3: 24, 4: 0 },
+            'genderSplits': { 'Female': 1900, 'Male': 2304 }
+        },
+        # 3. Germany Exited (814 total)
+        {
+            'geography': 'Germany', 'exited': 1, 'count': 814,
+            'activeCount': 295,
+            'ageGroupSplits': { '<30': 45, '30-45': 382, '46-60': 343, '60+': 44 },
+            'creditSplits': { 'Low': 218, 'Medium': 513, 'High': 83 },
+            'balanceSplits': { 'Zero': 0, 'LowMid': 109, 'HighBal': 705 },
+            'productSplits': { 1: 578, 2: 126, 3: 86, 4: 24 },
+            'genderSplits': { 'Female': 448, 'Male': 366 }
+        },
+        # 4. Germany Retained (1695 total)
+        {
+            'geography': 'Germany', 'exited': 0, 'count': 1695,
+            'activeCount': 955,
+            'ageGroupSplits': { '<30': 350, '30-45': 1120, '46-60': 159, '60+': 66 },
+            'creditSplits': { 'Low': 400, 'Medium': 1100, 'High': 195 },
+            'balanceSplits': { 'Zero': 0, 'LowMid': 293, 'HighBal': 1402 },
+            'productSplits': { 1: 771, 2: 914, 3: 10, 4: 0 },
+            'genderSplits': { 'Female': 745, 'Male': 950 }
+        },
+        # 5. Spain Exited (413 total)
+        {
+            'geography': 'Spain', 'exited': 1, 'count': 413,
+            'activeCount': 150,
+            'ageGroupSplits': { '<30': 47, '30-45': 81, '46-60': 149, '60+': 136 },
+            'creditSplits': { 'Low': 100, 'Medium': 280, 'High': 33 },
+            'balanceSplits': { 'Zero': 243, 'LowMid': 110, 'HighBal': 60 },
+            'productSplits': { 1: 261, 2: 82, 3: 54, 4: 16 },
+            'genderSplits': { 'Female': 217, 'Male': 196 }
+        },
+        # 6. Spain Retained (2064 total)
+        {
+            'geography': 'Spain', 'exited': 0, 'count': 2064,
+            'activeCount': 1131,
+            'ageGroupSplits': { '<30': 472, '30-45': 1148, '46-60': 142, '60+': 302 },
+            'creditSplits': { 'Low': 483, 'Medium': 1408, 'High': 173 },
+            'balanceSplits': { 'Zero': 1213, 'LowMid': 400, 'HighBal': 451 },
+            'productSplits': { 1: 974, 2: 1078, 3: 12, 4: 0 },
+            'genderSplits': { 'Female': 950, 'Male': 1114 }
+        }
+    ]
+
+    for c in cohorts:
+        listIsActive = []
+        listAgeGroup = []
+        listCreditBand = []
+        listBalanceSegment = []
+        listNumProducts = []
+        listGender = []
+
+        for _ in range(c['activeCount']): listIsActive.append(1)
+        for _ in range(c['count'] - c['activeCount']): listIsActive.append(0)
+
+        for k, amt in c['ageGroupSplits'].items():
+            for _ in range(amt): listAgeGroup.append(k)
+
+        for k, amt in c['creditSplits'].items():
+            for _ in range(amt): listCreditBand.append(k)
+
+        for k, amt in c['balanceSplits'].items():
+            for _ in range(amt): listBalanceSegment.append(k)
+
+        for k, amt in c['productSplits'].items():
+            for _ in range(amt): listNumProducts.append(k)
+
+        for k, amt in c['genderSplits'].items():
+            for _ in range(amt): listGender.append(k)
+
+        shuffle_array(listIsActive, rnd)
+        shuffle_array(listAgeGroup, rnd)
+        shuffle_array(listCreditBand, rnd)
+        shuffle_array(listBalanceSegment, rnd)
+        shuffle_array(listNumProducts, rnd)
+        shuffle_array(listGender, rnd)
+
+        for i in range(c['count']):
+            gender = listGender[i]
+            ageGroup = listAgeGroup[i]
+            creditBand = listCreditBand[i]
+            balanceSegment = listBalanceSegment[i]
+            numProds = listNumProducts[i]
+            isActive = listIsActive[i]
+
+            age = 35
+            if ageGroup == '<30':
+                age = int(math.floor(18 + rnd.next_val() * 12))
+            elif ageGroup == '30-45':
+                age = int(math.floor(30 + rnd.next_val() * 16))
+            elif ageGroup == '46-60':
+                age = int(math.floor(46 + rnd.next_val() * 15))
+            else:
+                age = int(math.floor(61 + rnd.next_val() * 26))
+
+            creditScore = 650
+            if creditBand == 'Low':
+                creditScore = int(math.floor(350 + rnd.next_val() * 230))
+            elif creditBand == 'Medium':
+                creditScore = int(math.floor(580 + rnd.next_val() * 141))
+            else:
+                creditScore = int(math.floor(721 + rnd.next_val() * 130))
+
+            balance = 0.0
+            if balanceSegment == 'LowMid':
+                balance = round(5000 + rnd.next_val() * 94999, 2)
+            elif balanceSegment == 'HighBal':
+                balance = round(100000 + rnd.next_val() * 115000, 2)
+
+            salary = 100000
+            if c['exited'] == 1:
+                salary = round(60000 + rnd.next_val() * 80000, 2)
+            else:
+                salary = round(1000 + rnd.next_val() * 188000, 2)
+
+            current_id += 1
+            customers.append({
+                "Year": 2025,
+                "CustomerId": current_id,
+                "Surname": surnames[int(math.floor(rnd.next_val() * len(surnames)))],
+                "CreditScore": creditScore,
+                "Geography": c['geography'],
+                "Gender": gender,
+                "Age": age,
+                "Tenure": int(math.floor(rnd.next_val() * 11)),
+                "Balance": balance,
+                "NumOfProducts": numProds,
+                "HasCrCard": 1 if rnd.next_val() < 0.705 else 0,
+                "IsActiveMember": isActive,
+                "EstimatedSalary": salary,
+                "Exited": c['exited']
+            })
+
+    # Financial scaling to achieve EXACT statistics
+    hv_churned = [c for c in customers if c['Balance'] >= 100000 and c['Exited'] == 1]
+    if len(hv_churned) == 1165:
+        current_balance_sum = sum(c['Balance'] for c in hv_churned)
+        balance_target = 154200000
+        balance_factor = balance_target / current_balance_sum
+
+        current_salary_sum = sum(c['EstimatedSalary'] for c in hv_churned)
+        salary_target = 1165 * 101414
+        salary_factor = salary_target / current_salary_sum
+
+        bal_cum_adjustment = 0.0
+        sal_cum_adjustment = 0.0
+
+        for i in range(len(hv_churned)):
+            c = hv_churned[i]
             
-        tenure = int(math.floor(rnd.next_val() * 11))
-        balance = 0.0 if rnd.next_val() < 0.38 else round(50000 + rnd.next_val() * 160000, 2)
-        
-        prod_rand = rnd.next_val()
-        if prod_rand < 0.50:
-            numOfProducts = 1
-        elif prod_rand < 0.95:
-            numOfProducts = 2
-        elif prod_rand < 0.99:
-            numOfProducts = 3
-        else:
-            numOfProducts = 4
-            
-        hasCrCard = 1 if rnd.next_val() < 0.705 else 0
-        isActiveMember = 1 if rnd.next_val() < 0.515 else 0
-        estimatedSalary = round(10000 + rnd.next_val() * 190000, 2)
-        
-        current_id += 1
-        france_customers.append({
-            "Year": 2025,
-            "CustomerId": current_id,
-            "Surname": surnames[int(math.floor(rnd.next_val() * len(surnames)))],
-            "CreditScore": credit_score,
-            "Geography": 'France',
-            "Gender": gender,
-            "Age": age,
-            "Tenure": tenure,
-            "Balance": balance,
-            "NumOfProducts": numOfProducts,
-            "HasCrCard": hasCrCard,
-            "IsActiveMember": isActiveMember,
-            "EstimatedSalary": estimatedSalary,
-            "Exited": 0
-        })
-        
-    france_with_risk = []
-    for c in france_customers:
-        score = 0
-        if 46 <= c['Age'] <= 60:
-            score += 40
-        elif 35 < c['Age'] < 46:
-            score += 15
-        elif c['Age'] > 60:
-            score += 20
-            
-        if c['Gender'] == 'Female':
-            score += 6
-            
-        if c['NumOfProducts'] == 2:
-            score -= 15
-        elif c['NumOfProducts'] == 1:
-            score += 12
-        elif c['NumOfProducts'] >= 3:
-            score += 70
-            
-        if c['IsActiveMember'] == 0:
-            score += 20
-        else:
-            score -= 10
-            
-        if c['Balance'] > 120000:
-            score += 5
-        if c['CreditScore'] < 500:
-            score += 12
-            
-        score += rnd.next_val() * 15
-        france_with_risk.append((c, score))
-        
-    france_with_risk.sort(key=lambda x: x[1], reverse=True)
-    for i in range(810):
-        france_with_risk[i][0]['Exited'] = 1
-        
-    customers.extend(france_customers)
+            new_bal_raw = c['Balance'] * balance_factor
+            new_bal_rounded = max(100000, int(round(new_bal_raw)))
+            bal_cum_adjustment += (new_bal_raw - new_bal_rounded)
+            c['Balance'] = float(new_bal_rounded)
 
-    # 2. Spain: 2,477 records, 413 exited
-    spain_customers = []
-    for i in range(2477):
-        gender = 'Female' if rnd.next_val() < 0.45 else 'Male'
-        credit_score = int(min(850, max(350, math.floor(652 + (rnd.next_val() - 0.5) * 180 + (rnd.next_val() - 0.5) * 100))))
-        
-        age_rand = rnd.next_val()
-        if age_rand < 0.12:
-            age = int(math.floor(18 + rnd.next_val() * 12))
-        elif age_rand < 0.65:
-            age = int(math.floor(30 + rnd.next_val() * 15))
-        elif age_rand < 0.90:
-            age = int(math.floor(45 + rnd.next_val() * 15))
-        else:
-            age = int(math.floor(60 + rnd.next_val() * 30))
-            
-        tenure = int(math.floor(rnd.next_val() * 11))
-        balance = 0.0 if rnd.next_val() < 0.38 else round(50000 + rnd.next_val() * 160000, 2)
-        
-        prod_rand = rnd.next_val()
-        if prod_rand < 0.50:
-            numOfProducts = 1
-        elif prod_rand < 0.95:
-            numOfProducts = 2
-        elif prod_rand < 0.99:
-            numOfProducts = 3
-        else:
-            numOfProducts = 4
-            
-        hasCrCard = 1 if rnd.next_val() < 0.70 else 0
-        isActiveMember = 1 if rnd.next_val() < 0.50 else 0
-        estimatedSalary = round(10000 + rnd.next_val() * 190000, 2)
-        
-        current_id += 1
-        spain_customers.append({
-            "Year": 2025,
-            "CustomerId": current_id,
-            "Surname": surnames[int(math.floor(rnd.next_val() * len(surnames)))],
-            "CreditScore": credit_score,
-            "Geography": 'Spain',
-            "Gender": gender,
-            "Age": age,
-            "Tenure": tenure,
-            "Balance": balance,
-            "NumOfProducts": numOfProducts,
-            "HasCrCard": hasCrCard,
-            "IsActiveMember": isActiveMember,
-            "EstimatedSalary": estimatedSalary,
-            "Exited": 0
-        })
-        
-    spain_with_risk = []
-    for c in spain_customers:
-        score = 0
-        if 46 <= c['Age'] <= 60:
-            score += 40
-        elif 35 < c['Age'] < 46:
-            score += 15
-        elif c['Age'] > 60:
-            score += 20
-            
-        if c['Gender'] == 'Female':
-            score += 6
-            
-        if c['NumOfProducts'] == 2:
-            score -= 15
-        elif c['NumOfProducts'] == 1:
-            score += 12
-        elif c['NumOfProducts'] >= 3:
-            score += 70
-            
-        if c['IsActiveMember'] == 0:
-            score += 20
-        else:
-            score -= 10
-            
-        if c['Balance'] > 120000:
-            score += 5
-        if c['CreditScore'] < 500:
-            score += 12
-            
-        score += rnd.next_val() * 15
-        spain_with_risk.append((c, score))
-        
-    spain_with_risk.sort(key=lambda x: x[1], reverse=True)
-    for i in range(413):
-        spain_with_risk[i][0]['Exited'] = 1
-        
-    customers.extend(spain_customers)
+            new_sal_raw = c['EstimatedSalary'] * salary_factor
+            new_sal_rounded = int(round(new_sal_raw))
+            sal_cum_adjustment += (new_sal_raw - new_sal_rounded)
+            c['EstimatedSalary'] = float(new_sal_rounded)
 
-    # 3. Germany: 2,509 records, 814 exited
-    # Churned segment (814 records)
-    g_churned_ages = []
-    for _ in range(338): g_churned_ages.append(int(math.floor(46 + rnd.next_val() * 15))) # 46-60
-    for _ in range(44): g_churned_ages.append(int(math.floor(61 + rnd.next_val() * 25))) # 60+
-    for _ in range(385): g_churned_ages.append(int(math.floor(30 + rnd.next_val() * 16))) # 30-45
-    for _ in range(47): g_churned_ages.append(int(math.floor(18 + rnd.next_val() * 12))) # <30
-
-    g_churned_prods = []
-    for _ in range(578): g_churned_prods.append(1)
-    for _ in range(126): g_churned_prods.append(2)
-    for _ in range(86): g_churned_prods.append(3)
-    for _ in range(24): g_churned_prods.append(4)
-
-    g_churned_balances = []
-    for _ in range(424): g_churned_balances.append(40000 + rnd.next_val() * 80000)
-    for _ in range(390): g_churned_balances.append(120000.01 + rnd.next_val() * 80000)
-
-    g_churned_genders = []
-    for _ in range(448): g_churned_genders.append('Female')
-    for _ in range(366): g_churned_genders.append('Male')
-
-    g_churned_active = []
-    for _ in range(518): g_churned_active.append(0)
-    for _ in range(296): g_churned_active.append(1)
-
-    shuffle_array(g_churned_ages, rnd)
-    shuffle_array(g_churned_prods, rnd)
-    shuffle_array(g_churned_balances, rnd)
-    shuffle_array(g_churned_genders, rnd)
-    shuffle_array(g_churned_active, rnd)
-
-    g_churned_customers = []
-    for i in range(814):
-        current_id += 1
-        g_churned_customers.append({
-            "Year": 2025,
-            "CustomerId": current_id,
-            "Surname": surnames[int(math.floor(rnd.next_val() * len(surnames)))],
-            "CreditScore": int(min(850, max(350, math.floor(645 + (rnd.next_val() - 0.5) * 160)))),
-            "Geography": 'Germany',
-            "Gender": g_churned_genders[i],
-            "Age": g_churned_ages[i],
-            "Tenure": int(math.floor(rnd.next_val() * 11)),
-            "Balance": round(g_churned_balances[i], 2),
-            "NumOfProducts": g_churned_prods[i],
-            "HasCrCard": 1 if rnd.next_val() < 0.71 else 0,
-            "IsActiveMember": g_churned_active[i],
-            "EstimatedSalary": round(15000 + rnd.next_val() * 180000, 2),
-            "Exited": 1
-        })
-
-    # Retained segment (1,695 records)
-    g_retained_ages = []
-    for _ in range(164): g_retained_ages.append(int(math.floor(46 + rnd.next_val() * 15)))
-    for _ in range(69): g_retained_ages.append(int(math.floor(61 + rnd.next_val() * 25)))
-    for _ in range(1137): g_retained_ages.append(int(math.floor(30 + rnd.next_val() * 16)))
-    for _ in range(325): g_retained_ages.append(int(math.floor(18 + rnd.next_val() * 12)))
-
-    g_retained_prods = []
-    for _ in range(771): g_retained_prods.append(1)
-    for _ in range(914): g_retained_prods.append(2)
-    for _ in range(10): g_retained_prods.append(3)
-    for _ in range(0): g_retained_prods.append(4)
-
-    g_retained_balances = []
-    for _ in range(842): g_retained_balances.append(40000 + rnd.next_val() * 80000)
-    for _ in range(853): g_retained_balances.append(120000.01 + rnd.next_val() * 80000)
-
-    g_retained_genders = []
-    for _ in range(745): g_retained_genders.append('Female')
-    for _ in range(950): g_retained_genders.append('Male')
-
-    g_retained_active = []
-    for _ in range(743): g_retained_active.append(0)
-    for _ in range(952): g_retained_active.append(1)
-
-    shuffle_array(g_retained_ages, rnd)
-    shuffle_array(g_retained_prods, rnd)
-    shuffle_array(g_retained_balances, rnd)
-    shuffle_array(g_retained_genders, rnd)
-    shuffle_array(g_retained_active, rnd)
-
-    g_retained_customers = []
-    for i in range(1695):
-        current_id += 1
-        g_retained_customers.append({
-            "Year": 2025,
-            "CustomerId": current_id,
-            "Surname": surnames[int(math.floor(rnd.next_val() * len(surnames)))],
-            "CreditScore": int(min(850, max(350, math.floor(655 + (rnd.next_val() - 0.5) * 160)))),
-            "Geography": 'Germany',
-            "Gender": g_retained_genders[i],
-            "Age": g_retained_ages[i],
-            "Tenure": int(math.floor(rnd.next_val() * 11)),
-            "Balance": round(g_retained_balances[i], 2),
-            "NumOfProducts": g_retained_prods[i],
-            "HasCrCard": 1 if rnd.next_val() < 0.70 else 0,
-            "IsActiveMember": g_retained_active[i],
-            "EstimatedSalary": round(15000 + rnd.next_val() * 180000, 2),
-            "Exited": 0
-        })
-
-    customers.extend(g_churned_customers)
-    customers.extend(g_retained_customers)
+        last_c = hv_churned[-1]
+        last_c['Balance'] += int(round(bal_cum_adjustment))
+        last_c['EstimatedSalary'] += int(round(sal_cum_adjustment))
 
     shuffle_array(customers, rnd)
+
+    # Overwrite first 30 with seed records
+    real_seed_records = [
+        { "Year": 2025, "CustomerId": 15634602, "Surname": "Hargrave", "CreditScore": 619, "Geography": "France", "Gender": "Female", "Age": 42, "Tenure": 2, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 101348.88, "Exited": 1 },
+        { "Year": 2025, "CustomerId": 15647311, "Surname": "Hill", "CreditScore": 608, "Geography": "Spain", "Gender": "Female", "Age": 41, "Tenure": 1, "Balance": 83807.86, "NumOfProducts": 1, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 112542.58, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15619304, "Surname": "Onio", "CreditScore": 502, "Geography": "France", "Gender": "Female", "Age": 42, "Tenure": 8, "Balance": 159660.8, "NumOfProducts": 3, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 113931.57, "Exited": 1 },
+        { "Year": 2025, "CustomerId": 15701354, "Surname": "Boni", "CreditScore": 699, "Geography": "France", "Gender": "Female", "Age": 39, "Tenure": 1, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 93826.63, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15737888, "Surname": "Mitchell", "CreditScore": 850, "Geography": "Spain", "Gender": "Female", "Age": 43, "Tenure": 2, "Balance": 125510.82, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 79084.1, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15574012, "Surname": "Chu", "CreditScore": 645, "Geography": "Spain", "Gender": "Male", "Age": 44, "Tenure": 8, "Balance": 113755.78, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 149756.71, "Exited": 1 },
+        { "Year": 2025, "CustomerId": 15592531, "Surname": "Bartlett", "CreditScore": 822, "Geography": "France", "Gender": "Male", "Age": 50, "Tenure": 7, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 10062.8, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15656148, "Surname": "Obinna", "CreditScore": 376, "Geography": "Germany", "Gender": "Female", "Age": 29, "Tenure": 4, "Balance": 115046.74, "NumOfProducts": 4, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 119346.88, "Exited": 1 },
+        { "Year": 2025, "CustomerId": 15792365, "Surname": "He", "CreditScore": 501, "Geography": "France", "Gender": "Male", "Age": 44, "Tenure": 4, "Balance": 142051.07, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 74940.5, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15592389, "Surname": "H?", "CreditScore": 684, "Geography": "France", "Gender": "Male", "Age": 27, "Tenure": 2, "Balance": 134603.88, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 71725.73, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15767821, "Surname": "Bearce", "CreditScore": 528, "Geography": "France", "Gender": "Male", "Age": 31, "Tenure": 6, "Balance": 102016.72, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 80181.12, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15737173, "Surname": "Andrews", "CreditScore": 497, "Geography": "Spain", "Gender": "Male", "Age": 24, "Tenure": 3, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 76390.01, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15632264, "Surname": "Kay", "CreditScore": 476, "Geography": "France", "Gender": "Female", "Age": 34, "Tenure": 10, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 26260.98, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15691483, "Surname": "Chin", "CreditScore": 549, "Geography": "France", "Gender": "Female", "Age": 25, "Tenure": 5, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 190857.79, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15600882, "Surname": "Scott", "CreditScore": 635, "Geography": "Spain", "Gender": "Female", "Age": 35, "Tenure": 7, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 65951.65, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15643966, "Surname": "Goforth", "CreditScore": 616, "Geography": "Germany", "Gender": "Male", "Age": 45, "Tenure": 3, "Balance": 143129.41, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 64327.26, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15737452, "Surname": "Romeo", "CreditScore": 653, "Geography": "Germany", "Gender": "Male", "Age": 58, "Tenure": 1, "Balance": 132602.88, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 5097.67, "Exited": 1 },
+        { "Year": 2025, "CustomerId": 15788218, "Surname": "Henderson", "CreditScore": 549, "Geography": "Spain", "Gender": "Female", "Age": 24, "Tenure": 9, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 14406.41, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15661507, "Surname": "Muldrow", "CreditScore": 587, "Geography": "Spain", "Gender": "Male", "Age": 45, "Tenure": 6, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 158684.81, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15568982, "Surname": "Hao", "CreditScore": 726, "Geography": "France", "Gender": "Female", "Age": 24, "Tenure": 6, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 54724.03, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15577657, "Surname": "McDonald", "CreditScore": 732, "Geography": "France", "Gender": "Male", "Age": 41, "Tenure": 8, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 170886.17, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15597945, "Surname": "Dellucci", "CreditScore": 636, "Geography": "Spain", "Gender": "Female", "Age": 32, "Tenure": 8, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 138555.46, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15699309, "Surname": "Gerasimov", "CreditScore": 510, "Geography": "Spain", "Gender": "Female", "Age": 38, "Tenure": 4, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 0, "EstimatedSalary": 118913.53, "Exited": 1 },
+        { "Year": 2025, "CustomerId": 15725737, "Surname": "Mosman", "CreditScore": 669, "Geography": "France", "Gender": "Male", "Age": 46, "Tenure": 3, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 8487.75, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15625047, "Surname": "Yen", "CreditScore": 846, "Geography": "France", "Gender": "Female", "Age": 38, "Tenure": 5, "Balance": 0.0, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 187616.16, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15738191, "Surname": "Maclean", "CreditScore": 577, "Geography": "France", "Gender": "Male", "Age": 25, "Tenure": 3, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 1, "EstimatedSalary": 124508.29, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15736816, "Surname": "Young", "CreditScore": 756, "Geography": "Germany", "Gender": "Male", "Age": 36, "Tenure": 2, "Balance": 136815.64, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 170041.95, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15700772, "Surname": "Nebechi", "CreditScore": 571, "Geography": "France", "Gender": "Male", "Age": 44, "Tenure": 9, "Balance": 0.0, "NumOfProducts": 2, "HasCrCard": 0, "IsActiveMember": 0, "EstimatedSalary": 38433.35, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15728693, "Surname": "McWilliams", "CreditScore": 574, "Geography": "Germany", "Gender": "Female", "Age": 43, "Tenure": 3, "Balance": 141349.43, "NumOfProducts": 1, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 100187.43, "Exited": 0 },
+        { "Year": 2025, "CustomerId": 15656300, "Surname": "Lucciano", "CreditScore": 411, "Geography": "France", "Gender": "Male", "Age": 29, "Tenure": 0, "Balance": 59697.17, "NumOfProducts": 2, "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 53483.21, "Exited": 0 }
+    ]
+
+    for seed in real_seed_records:
+        for idx, c in enumerate(customers):
+            if c['Exited'] == seed['Exited'] and c['Geography'] == seed['Geography']:
+                customers[idx] = dict(seed)
+                break
+
     return pd.DataFrame(customers)
 
 # Helper function to categorize variables
@@ -393,13 +331,13 @@ def get_age_group(age):
     return '60+'
 
 def get_credit_score_band(score):
-    if score < 550: return 'Low'
-    if score <= 700: return 'Medium'
+    if score < 580: return 'Low'
+    if score <= 720: return 'Medium'
     return 'High'
 
 def get_tenure_group(tenure):
     if tenure <= 2: return 'New'
-    if tenure <= 7: return 'Mid-term'
+    if tenure <= 6: return 'Mid-term'
     return 'Long-term'
 
 # Load the data
@@ -568,7 +506,6 @@ with tab_summary:
             paper_bgcolor="rgba(0,0,0,0)",
             yaxis_range=[0, 105]
         )
-        # Highlight products 3 & 4
         fig_prod.update_traces(
             marker_color=["#1a1a1a", "#1a1a1a", "#c53030", "#c53030"],
             textposition="outside"
@@ -605,7 +542,7 @@ with tab_summary:
         <span class="mono-label">ECB Supervisory Findings</span>
         <h4 style="font-family:'Playfair Display', serif; margin: 0.5rem 0;">Product Bloat Churn Correlation</h4>
         <p style="font-size: 0.85rem; line-height: 1.6; color: #2d3748;">
-            A key focal point of this supervisory audit is the product utilization profile. While customers holding <strong>two products</strong> represent the most stable client segment with exceptionally low churn rates (~8.2%), customers holding <strong>three or four bank products exhibit catastrophic churn rates near 82.7% and 100% respectively</strong>. This suggests that aggressive cross-selling strategies beyond two products create immediate frictional exits rather than locking in long-term customer value.
+            A key focal point of this supervisory audit is the product utilization profile. While customers holding <strong>two products</strong> represent the most stable client segment with exceptionally low churn rates (~7.58%), customers holding <strong>three or four bank products exhibit catastrophic churn rates near 82.71% and 100% respectively</strong>. This suggests that aggressive cross-selling strategies beyond two products create immediate frictional exits rather than locking in long-term customer value.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -616,7 +553,6 @@ with tab_summary:
 with tab_ledger:
     st.markdown("<h3 style='font-family:Playfair Display, serif; italic'>Advanced Segment Metrics and Interactions</h3>", unsafe_allow_html=True)
     
-    # We will build a beautiful pandas DataFrame of segment metrics dynamically!
     segments_to_analyze = [
         # Geography
         ("France", "Geography", lambda d: d['Geography'] == 'France'),
@@ -630,14 +566,14 @@ with tab_ledger:
         ("60+", "Age Group", lambda d: d['AgeGroup'] == '60+'),
         
         # Credit Bands
-        ("Low Credit Score (<550)", "Credit Rating", lambda d: d['CreditBand'] == 'Low'),
-        ("Medium Credit Score (550-700)", "Credit Rating", lambda d: d['CreditBand'] == 'Medium'),
-        ("High Credit Score (>700)", "Credit Rating", lambda d: d['CreditBand'] == 'High'),
+        ("Low Credit Score (<580)", "Credit Rating", lambda d: d['CreditBand'] == 'Low'),
+        ("Medium Credit Score (580-720)", "Credit Rating", lambda d: d['CreditBand'] == 'Medium'),
+        ("High Credit Score (>720)", "Credit Rating", lambda d: d['CreditBand'] == 'High'),
         
         # Tenure
         ("New (0-2y)", "Tenure", lambda d: d['TenureGroup'] == 'New'),
-        ("Mid-term (3-7y)", "Tenure", lambda d: d['TenureGroup'] == 'Mid-term'),
-        ("Long-term (8-10y)", "Tenure", lambda d: d['TenureGroup'] == 'Long-term'),
+        ("Mid-term (3-6y)", "Tenure", lambda d: d['TenureGroup'] == 'Mid-term'),
+        ("Long-term (7-10y)", "Tenure", lambda d: d['TenureGroup'] == 'Long-term'),
         
         # Balance Segment
         ("Zero Balance", "Financial Segment", lambda d: d['BalanceSegment'] == 'Zero-balance'),
